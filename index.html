@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>City Eye - 생활 불편 자동 탐지 AI</title>
+<style>
+  :root { --bg:#f4f7fb; --card:#fff; --main:#2563eb; --text:#1e293b; --sub:#64748b; --line:#e2e8f0; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Malgun Gothic',system-ui,sans-serif; background:var(--bg); color:var(--text); line-height:1.5; }
+  header { background:#fff; color:var(--text); padding:28px 20px 40px; text-align:center; border-bottom:4px solid var(--main); }
+  header img { height:130px; width:auto; }
+  header h1 { font-size:2rem; color:#1d4ed8; margin-top:4px; }
+  header p { color:var(--sub); margin-top:6px; }
+  main { max-width:900px; margin:24px auto 40px; padding:0 16px; }
+  section { background:var(--card); border-radius:14px; padding:24px; margin-bottom:20px; box-shadow:0 2px 10px rgba(0,0,0,.06); }
+  h2 { font-size:1.2rem; margin-bottom:14px; }
+  label { display:block; font-weight:600; margin:12px 0 4px; font-size:.9rem; }
+  input, textarea { width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font:inherit; }
+  textarea { min-height:90px; resize:vertical; }
+  input:focus, textarea:focus { outline:2px solid var(--main); border-color:transparent; }
+  button { background:var(--main); color:#fff; border:0; padding:12px 20px; border-radius:8px; font:inherit; font-weight:700; cursor:pointer; margin-top:16px; }
+  button:hover { filter:brightness(1.1); }
+  .ai-preview { margin-top:12px; padding:10px 12px; background:#eff6ff; border-radius:8px; font-size:.9rem; color:#1e40af; min-height:40px; }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; }
+  .stat { background:var(--bg); border-radius:10px; padding:12px; text-align:center; }
+  .stat b { display:block; font-size:1.6rem; color:var(--main); }
+  .filters { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+  .filters button { margin:0; padding:6px 14px; background:var(--bg); color:var(--text); font-weight:500; border:1px solid var(--line); }
+  .filters button.on { background:var(--main); color:#fff; }
+  .report { border:1px solid var(--line); border-radius:10px; padding:14px; margin-bottom:10px; }
+  .report h3 { font-size:1rem; }
+  .report .meta { color:var(--sub); font-size:.8rem; margin-top:4px; }
+  .report p { margin-top:8px; font-size:.92rem; }
+  .tag { display:inline-block; padding:2px 10px; border-radius:99px; font-size:.75rem; font-weight:700; margin-right:6px; }
+  .u-높음 { background:#fee2e2; color:#b91c1c; }
+  .u-보통 { background:#fef3c7; color:#92400e; }
+  .u-낮음 { background:#dcfce7; color:#166534; }
+  .cat { background:#e0e7ff; color:#3730a3; }
+  .empty { text-align:center; color:var(--sub); padding:20px; }
+</style>
+</head>
+<body>
+<header>
+  <img src="logo.png" alt="City Eye 로고">
+  <h1>City Eye</h1>
+  <p>생활 불편을 적으면, AI가 자동으로 분류하고 긴급도를 판단합니다</p>
+</header>
+
+<main>
+  <section>
+    <h2>📝 불편 신고하기</h2>
+    <form id="form">
+      <label for="title">제목</label>
+      <input id="title" required placeholder="예) 정문 앞 도로가 파였어요">
+      <label for="desc">상세 설명</label>
+      <textarea id="desc" required placeholder="어떤 불편인지 자세히 적어 주세요"></textarea>
+      <label for="loc">위치</label>
+      <input id="loc" required placeholder="예) 서울시 ○○구 ○○로 12">
+      <div class="ai-preview" id="aiPreview">🤖 내용을 입력하면 AI 분석 결과가 여기에 나타납니다.</div>
+      <button type="submit">신고 접수</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>📊 현황</h2>
+    <div class="stats" id="stats"></div>
+  </section>
+
+  <section>
+    <h2>📋 신고 목록</h2>
+    <div class="filters" id="filters"></div>
+    <div id="list"></div>
+  </section>
+</main>
+
+<script>
+/* ===== 1. AI 분석 (지금은 키워드 규칙 → 나중에 Claude API로 교체) ===== */
+const CATEGORIES = {
+  '도로파손': ['도로','파임','구멍','포트홀','보도블록','균열','싱크홀'],
+  '쓰레기':   ['쓰레기','악취','무단투기','폐기물','냄새'],
+  '시설고장': ['가로등','신호등','고장','깨짐','정전','맨홀','난간'],
+  '소음':     ['소음','시끄','공사','층간','경적'],
+  '안전위험': ['위험','사고','넘어','다침','추락','화재','침수','어두'],
+};
+const URGENT_WORDS = ['위험','사고','다침','추락','화재','침수','싱크홀','감전','붕괴'];
+const MID_WORDS = ['고장','파임','구멍','악취','깨짐','정전','어두'];
+
+function analyze(text) {
+  let best = '기타', bestScore = 0;
+  for (const [cat, words] of Object.entries(CATEGORIES)) {
+    const score = words.filter(w => text.includes(w)).length;
+    if (score > bestScore) { best = cat; bestScore = score; }
+  }
+  let urgency = '낮음';
+  if (URGENT_WORDS.some(w => text.includes(w))) urgency = '높음';
+  else if (MID_WORDS.some(w => text.includes(w))) urgency = '보통';
+  return { category: best, urgency };
+}
+
+/* ===== 2. 저장소 (지금은 브라우저 localStorage → 5단계에서 Supabase로 교체) =====
+   교체할 때는 아래 두 함수의 내부만 바꾸면 됩니다. */
+async function loadReports() {
+  return JSON.parse(localStorage.getItem('cityeye_reports') || '[]');
+}
+async function saveReport(report) {
+  const all = await loadReports();
+  all.unshift(report);
+  localStorage.setItem('cityeye_reports', JSON.stringify(all));
+}
+
+/* ===== 3. 화면 ===== */
+let currentFilter = '전체';
+const $ = id => document.getElementById(id);
+const esc = s => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function previewAI() {
+  const text = $('title').value + ' ' + $('desc').value;
+  if (text.trim().length < 2) { $('aiPreview').textContent = '🤖 내용을 입력하면 AI 분석 결과가 여기에 나타납니다.'; return; }
+  const r = analyze(text);
+  $('aiPreview').innerHTML = `🤖 AI 분석: 분류 <b>${r.category}</b> · 긴급도 <b>${r.urgency}</b>`;
+}
+$('title').addEventListener('input', previewAI);
+$('desc').addEventListener('input', previewAI);
+
+$('form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const ai = analyze($('title').value + ' ' + $('desc').value);
+  await saveReport({
+    id: Date.now(),
+    title: $('title').value.trim(),
+    description: $('desc').value.trim(),
+    location: $('loc').value.trim(),
+    category: ai.category,
+    urgency: ai.urgency,
+    created_at: new Date().toISOString(),
+  });
+  e.target.reset(); previewAI();
+  render();
+});
+
+async function render() {
+  const all = await loadReports();
+
+  const high = all.filter(r => r.urgency === '높음').length;
+  $('stats').innerHTML =
+    `<div class="stat"><b>${all.length}</b>전체 신고</div>` +
+    `<div class="stat"><b>${high}</b>긴급</div>` +
+    Object.keys(CATEGORIES).concat('기타').map(c =>
+      `<div class="stat"><b>${all.filter(r => r.category === c).length}</b>${c}</div>`).join('');
+
+  const cats = ['전체', ...Object.keys(CATEGORIES), '기타'];
+  $('filters').innerHTML = cats.map(c =>
+    `<button type="button" class="${c === currentFilter ? 'on' : ''}" data-c="${c}">${c}</button>`).join('');
+  $('filters').querySelectorAll('button').forEach(b =>
+    b.onclick = () => { currentFilter = b.dataset.c; render(); });
+
+  const shown = currentFilter === '전체' ? all : all.filter(r => r.category === currentFilter);
+  $('list').innerHTML = shown.length ? shown.map(r => `
+    <div class="report">
+      <span class="tag cat">${esc(r.category)}</span><span class="tag u-${r.urgency}">긴급도 ${r.urgency}</span>
+      <h3>${esc(r.title)}</h3>
+      <div class="meta">📍 ${esc(r.location)} · ${new Date(r.created_at).toLocaleString('ko-KR')}</div>
+      <p>${esc(r.description)}</p>
+    </div>`).join('') : '<div class="empty">아직 신고가 없습니다.</div>';
+}
+render();
+</script>
+</body>
+</html>

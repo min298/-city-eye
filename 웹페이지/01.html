@@ -1,0 +1,747 @@
+  <!DOCTYPE html>
+  <html lang="ko">
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>City Eye | 생활 불편 탐지 AI</title>
+
+  <style>
+  * {
+      box-sizing: border-box;
+  }
+
+  body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f7fb;
+      color: #172033;
+  }
+
+  button, input, textarea {
+      font: inherit;
+  }
+
+  .container {
+      max-width: 1050px;
+      margin: auto;
+      padding: 0 24px;
+  }
+
+  /* 상단 메뉴 */
+  header {
+      background: white;
+      border-bottom: 1px solid #e5eaf1;
+  }
+
+  .nav {
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+  }
+
+  .logo {
+      font-size: 23px;
+      font-weight: 800;
+      color: #1d4ed8;
+      letter-spacing: -1px;
+  }
+
+  .logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+  }
+
+  .logo-img {
+      height: 56px;
+      width: auto;
+      display: block;
+  }
+
+  .nav-text {
+      color: #64748b;
+      font-size: 14px;
+  }
+
+  /* 메인 소개 */
+  .hero {
+      background: #14243d;
+      color: white;
+      padding: 55px 0;
+  }
+
+  .hero-label {
+      color: #93b7ff;
+      font-size: 13px;
+      font-weight: bold;
+      letter-spacing: 2px;
+  }
+
+  .hero h1 {
+      font-size: 36px;
+      line-height: 1.4;
+      margin: 16px 0;
+  }
+
+  .hero p {
+      color: #cbd5e1;
+      line-height: 1.8;
+      font-size: 15px;
+  }
+
+  .hero-badge {
+      display: inline-block;
+      background: #263d60;
+      color: #bfdbfe;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+  }
+
+  /* 이용 단계 */
+  .steps {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 30px 0;
+      flex-wrap: wrap;
+  }
+
+  .step {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 30px;
+      padding: 11px 20px;
+      font-size: 13px;
+      color: #64748b;
+  }
+
+  .step.active {
+      background: #eaf1ff;
+      color: #1d4ed8;
+      border-color: #93b7ff;
+      font-weight: bold;
+  }
+
+  /* 공통 카드 */
+  .card {
+      background: white;
+      border: 1px solid #e5eaf1;
+      border-radius: 14px;
+      padding: 26px;
+      margin-bottom: 20px;
+      box-shadow: 0 3px 12px rgba(15, 23, 42, 0.03);
+  }
+
+  .section-title {
+      font-size: 19px;
+      font-weight: bold;
+      margin: 0 0 8px;
+  }
+
+  .section-desc {
+      color: #64748b;
+      font-size: 13px;
+      margin-bottom: 22px;
+      line-height: 1.6;
+  }
+
+  .number {
+      color: #2563eb;
+      margin-right: 8px;
+  }
+
+  /* 사진 업로드 */
+  .upload-box {
+      border: 2px dashed #b8c8df;
+      border-radius: 12px;
+      background: #f8faff;
+      padding: 38px 15px;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.2s;
+  }
+
+  .upload-box:hover,
+  .upload-box.dragover {
+      border-color: #2563eb;
+      background: #eff6ff;
+  }
+
+  .upload-icon {
+      font-size: 38px;
+      margin-bottom: 12px;
+  }
+
+  .upload-box strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 8px;
+  }
+
+  .upload-box p {
+      color: #94a3b8;
+      font-size: 12px;
+  }
+
+  #file {
+      display: none;
+  }
+
+  .preview-wrap {
+      position: relative;
+      margin-top: 18px;
+  }
+
+  #preview {
+      width: 100%;
+      max-height: 320px;
+      object-fit: contain;
+      background: #f1f5f9;
+      border-radius: 10px;
+  }
+
+  .remove-image {
+      margin-top: 10px;
+      border: 0;
+      background: #f1f5f9;
+      color: #475569;
+      border-radius: 7px;
+      padding: 9px 14px;
+      cursor: pointer;
+      font-size: 12px;
+  }
+
+  /* 입력 영역 */
+  .field {
+      margin-top: 22px;
+  }
+
+  .field label {
+      display: block;
+      font-weight: bold;
+      font-size: 14px;
+      margin-bottom: 9px;
+  }
+
+  .field input,
+  .field textarea {
+      width: 100%;
+      border: 1px solid #dbe2ec;
+      border-radius: 9px;
+      padding: 13px;
+      outline: none;
+      background: white;
+  }
+
+  .field input:focus,
+  .field textarea:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px #dbeafe;
+  }
+
+  .field textarea {
+      resize: vertical;
+      min-height: 95px;
+  }
+
+  .help {
+      color: #94a3b8;
+      font-size: 12px;
+      margin-top: 7px;
+  }
+
+  /* 분석 버튼 */
+  .main-btn {
+      width: 100%;
+      margin-top: 25px;
+      border: 0;
+      background: #2563eb;
+      color: white;
+      padding: 16px;
+      border-radius: 9px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 15px;
+      transition: 0.2s;
+  }
+
+  .main-btn:hover {
+      background: #1d4ed8;
+  }
+
+  .main-btn:disabled {
+      background: #94a3b8;
+      cursor: wait;
+  }
+
+  /* 상태 메시지 */
+  .status {
+      display: none;
+      text-align: center;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-radius: 9px;
+      padding: 16px;
+      margin-bottom: 20px;
+      font-size: 14px;
+  }
+
+  .spinner {
+      display: inline-block;
+      width: 17px;
+      height: 17px;
+      border: 2px solid #bfdbfe;
+      border-top-color: #2563eb;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+  }
+
+  @keyframes spin {
+      to { transform: rotate(360deg); }
+  }
+
+  /* 결과 영역 */
+  .result-section {
+      display: none;
+  }
+
+  .result-box {
+      background: #f8faff;
+      border: 1px solid #e1eaf8;
+      border-radius: 10px;
+      padding: 20px;
+      line-height: 1.8;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-size: 14px;
+  }
+
+  .result-label {
+      color: #2563eb;
+      font-size: 12px;
+      font-weight: bold;
+      margin-bottom: 12px;
+  }
+
+  /* 민원 영역 */
+  .complaint-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 22px;
+      line-height: 1.9;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      min-height: 100px;
+      font-size: 14px;
+  }
+
+  .copy-btn {
+      margin-top: 14px;
+      background: #172b4d;
+      color: white;
+      border: 0;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+  }
+
+  .copy-btn:hover {
+      background: #263f68;
+  }
+
+  .copy-btn:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+  }
+
+  /* 하단 */
+  footer {
+      text-align: center;
+      padding: 35px 15px;
+      color: #94a3b8;
+      font-size: 12px;
+      line-height: 1.8;
+  }
+
+  /* 모바일 */
+  @media (max-width: 600px) {
+      .container {
+          padding: 0 16px;
+      }
+
+      .hero {
+          padding: 40px 0;
+      }
+
+      .hero h1 {
+          font-size: 28px;
+      }
+
+      .card {
+          padding: 19px;
+      }
+
+      .nav-text {
+          font-size: 11px;
+      }
+  }
+  </style>
+  </head>
+
+  <body>
+
+  <header>
+      <div class="container nav">
+          <div class="logo-wrap">
+              <img class="logo-img" src="로고이미지.png" alt="CITY EYE 로고">
+              <div class="logo">CITY EYE 👁 </div>
+          </div>
+          <div class="nav-text">AI 도시 문제 탐지 서비스</div>
+      </div>
+  </header>
+
+  <section class="hero">
+      <div class="container">
+          <span class="hero-label">SMART CITY AI SERVICE</span>
+
+          <h1>
+              도시의 작은 문제도<br>
+              AI가 먼저 발견합니다.
+          </h1>
+
+          <p>
+              생활 속 불편 사항을 사진으로 제보해 주세요.<br>
+              AI가 문제를 분석하고 민원 작성까지 도와드립니다.
+          </p>
+
+          <span class="hero-badge">
+              📷 사진 분석 · 🤖 AI 진단 · 📝 민원 자동 작성
+          </span>
+      </div>
+  </section>
+
+  <main class="container">
+
+      <div class="steps">
+          <div class="step active">01 사진 및 정보 입력</div>
+          <div class="step">02 AI 분석</div>
+          <div class="step">03 민원 자동 작성</div>
+      </div>
+
+      <!-- 입력 영역 -->
+      <section class="card">
+
+          <h2 class="section-title">
+              <span class="number">01.</span>
+              도시 문제 제보하기
+          </h2>
+
+          <p class="section-desc">
+              문제가 발생한 현장의 사진과 위치를 입력해 주세요.
+              입력한 정보를 바탕으로 AI가 문제를 분석합니다.
+          </p>
+
+          <label class="upload-box" id="uploadBox" for="file">
+              <div class="upload-icon">📸</div>
+              <strong>사진을 업로드해 주세요</strong>
+              <p>클릭하거나 사진을 이곳에 끌어다 놓으세요.</p>
+              <p>JPG, PNG 이미지 파일 지원</p>
+          </label>
+
+          <input type="file" id="file" accept="image/jpeg,image/png,image/webp">
+
+          <div class="preview-wrap" id="previewWrap" hidden>
+              <img id="preview" alt="업로드한 사진 미리보기">
+              <button class="remove-image" id="removeBtn" type="button">
+                  사진 삭제
+              </button>
+          </div>
+
+          <div class="field">
+              <label for="location">📍 발생 위치</label>
+              <input
+                  id="location"
+                  type="text"
+                  placeholder="예: 서울시 OO구 OO동 123번지 앞"
+              >
+              <p class="help">
+                  문제가 발생한 정확한 위치를 입력해 주세요.
+              </p>
+          </div>
+
+          <div class="field">
+              <label for="extra">💬 추가 설명 (선택)</label>
+              <textarea
+                  id="extra"
+                  placeholder="문제 상황에 대한 추가 설명이 있다면 입력해 주세요."
+              ></textarea>
+          </div>
+
+          <button class="main-btn" id="btn" type="button">
+              ✨  AI 분석 및 민원 작성하기
+          </button>
+
+      </section>
+
+      <!-- 진행 상태 -->
+      <div class="status" id="status" role="status" aria-live="polite">
+          <span class="spinner"></span>
+          <span id="statusText">AI가 사진을 분석하고 있습니다.</span>
+      </div>
+
+      <!-- AI 분석 결과 -->
+      <section class="card result-section" id="analysisSection">
+
+          <h2 class="section-title">
+              <span class="number">02.</span>
+              AI 분석 결과
+          </h2>
+
+          <p class="section-desc">
+              업로드한 사진을 분석한 결과입니다.
+          </p>
+
+          <div class="result-label">AI ANALYSIS RESULT</div>
+
+          <div class="result-box" id="result">
+              분석 결과가 이곳에 표시됩니다.
+          </div>
+
+      </section>
+
+      <!-- 민원 작성 결과 -->
+      <section class="card result-section" id="complaintSection">
+
+          <h2 class="section-title">
+              <span class="number">03.</span>
+              AI 민원 자동 작성
+          </h2>
+
+          <p class="section-desc">
+              AI 분석 결과를 바탕으로 작성된 민원입니다.
+              내용을 확인한 후 복사하여 활용할 수 있습니다.
+          </p>
+
+          <div class="result-label">GENERATED COMPLAINT</div>
+
+          <div class="complaint-box" id="complaint">
+              민원 내용이 이곳에 표시됩니다.
+          </div>
+
+          <button class="copy-btn" id="copyBtn" type="button" disabled>
+              📋 민원 내용 복사하기
+          </button>
+
+      </section>
+
+  </main>
+
+  <footer>
+      CITY EYE | AI 기반 생활 불편 탐지 서비스<br>
+      더 편리하고 안전한 도시를 위한 AI
+  </footer>
+
+  <script>
+  const $ = id => document.getElementById(id);
+
+  let selectedFile = null;
+
+  // 사진 선택
+  $("file").onchange = e => {
+      const file = e.target.files[0];
+      if (file) showPreview(file);
+  };
+
+  // 사진 미리보기
+  function showPreview(file) {
+
+      if (!file.type.startsWith("image/")) {
+          alert("이미지 파일만 업로드할 수 있습니다.");
+          return;
+      }
+
+      if (file.size > 10 * 1024 * 1024) {
+          alert("사진은 10MB 이하로 업로드해 주세요.");
+          return;
+      }
+
+      selectedFile = file;
+
+      const oldUrl = $("preview").src;
+
+      if (oldUrl.startsWith("blob:")) {
+          URL.revokeObjectURL(oldUrl);
+      }
+
+      $("preview").src = URL.createObjectURL(file);
+      $("previewWrap").hidden = false;
+      $("uploadBox").style.display = "none";
+  }
+
+  // 사진 삭제
+  $("removeBtn").onclick = () => {
+
+      const oldUrl = $("preview").src;
+
+      if (oldUrl.startsWith("blob:")) {
+          URL.revokeObjectURL(oldUrl);
+      }
+
+      selectedFile = null;
+      $("file").value = "";
+      $("preview").src = "";
+      $("previewWrap").hidden = true;
+      $("uploadBox").style.display = "block";
+  };
+
+  // 드래그 앤 드롭
+  $("uploadBox").ondragover = e => {
+      e.preventDefault();
+      $("uploadBox").classList.add("dragover");
+  };
+
+  $("uploadBox").ondragleave = () => {
+      $("uploadBox").classList.remove("dragover");
+  };
+
+  $("uploadBox").ondrop = e => {
+      e.preventDefault();
+      $("uploadBox").classList.remove("dragover");
+
+      const file = e.dataTransfer.files[0];
+
+      if (file) showPreview(file);
+  };
+
+  // 결과 초기화
+  function clearResults() {
+      $("analysisSection").style.display = "none";
+      $("complaintSection").style.display = "none";
+      $("copyBtn").disabled = true;
+      $("result").textContent = "";
+      $("complaint").textContent = "";
+  }
+
+  // 분석 버튼
+  $("btn").onclick = async () => {
+
+      const f = selectedFile;
+
+      if (!f) {
+          alert("먼저 사진을 업로드해 주세요.");
+          return;
+      }
+
+      if (!$("location").value.trim()) {
+          alert("발생 위치를 입력해 주세요.");
+          $("location").focus();
+          return;
+      }
+
+      clearResults();
+
+      $("btn").disabled = true;
+      $("btn").textContent = "AI 분석 진행 중...";
+
+      $("status").style.display = "block";
+      $("statusText").textContent = "사진을 분석하고 있습니다.";
+
+      try {
+
+          // 1. AI 이미지 분석
+          const fd = new FormData();
+          fd.append("file", f);
+
+          const response = await fetch("/analyze", {
+              method: "POST",
+              body: fd
+          });
+
+          if (!response.ok) {
+              throw new Error("AI 이미지 분석에 실패했습니다.");
+          }
+
+          const result = await response.json();
+
+          $("result").textContent =
+              typeof result === "string"
+                  ? result
+                  : JSON.stringify(result, null, 2);
+
+          $("analysisSection").style.display = "block";
+
+          // 2. 민원 자동 작성
+          $("statusText").textContent =
+              "AI 분석 결과를 바탕으로 민원을 작성하고 있습니다.";
+
+          const fd2 = new FormData();
+
+          fd2.append("result", JSON.stringify(result));
+          fd2.append("location", $("location").value.trim());
+          fd2.append("extra", $("extra").value.trim());
+
+          const response2 = await fetch("/complaint", {
+              method: "POST",
+              body: fd2
+          });
+
+          if (!response2.ok) {
+              throw new Error("민원 작성에 실패했습니다.");
+          }
+
+          const c = await response2.json();
+
+          if (!c.complaint) {
+              throw new Error("민원 생성 결과가 비어 있습니다.");
+          }
+
+          $("complaint").textContent = c.complaint;
+          $("complaintSection").style.display = "block";
+          $("copyBtn").disabled = false;
+
+          $("status").style.display = "none";
+
+          alert("AI 분석 및 민원 작성이 완료되었습니다!");
+
+          $("analysisSection").scrollIntoView({
+              behavior: "smooth",
+              block: "start"
+          });
+
+      } catch (e) {
+
+          $("status").style.display = "none";
+
+          alert("오류가 발생했습니다: " + e.message);
+
+      } finally {
+
+          $("btn").disabled = false;
+          $("btn").textContent = "✨  AI 분석 및 민원 작성하기";
+
+      }
+  };
+
+  // 민원 복사
+  $("copyBtn").onclick = async () => {
+
+      const text = $("complaint").textContent;
+
+      try {
+          await navigator.clipboard.writeText(text);
+          $("copyBtn").textContent = "✓ 복사 완료!";
+      } catch (e) {
+          alert("복사에 실패했습니다. 민원 내용을 직접 선택해 주세요.");
+      }
+
+  };
+  </script>
+
+  </body>
+  </html>

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>City Eye - AI 시민 신고</title>
+<style>
+  body{font-family:system-ui,'Malgun Gothic',sans-serif;max-width:640px;margin:0 auto;padding:16px;color:#1c2430}
+  h1{font-size:1.4rem} .card{border:1px solid #d8dee6;border-radius:10px;padding:14px;margin:12px 0}
+  input[type=text],textarea{width:100%;box-sizing:border-box;padding:8px;margin:4px 0 10px;border:1px solid #c4ccd6;border-radius:6px;font:inherit}
+  textarea{min-height:110px} button{background:#1d6fe0;color:#fff;border:0;border-radius:8px;padding:10px 16px;font:inherit;cursor:pointer}
+  button:disabled{background:#9db8e0} img{max-width:100%;border-radius:8px}
+  .warn{background:#fff4d6;border:1px solid #f0c35a;padding:8px;border-radius:6px}
+  .ok{background:#e3f7e8;border:1px solid #6cc58a;padding:8px;border-radius:6px}
+  .tag{display:inline-block;background:#eef3fb;border-radius:12px;padding:2px 10px;font-size:.85rem;margin-right:4px}
+  small{color:#5b6775}
+</style>
+</head>
+<body>
+<h1>📷 City Eye</h1>
+<p><small>사진을 올리면 AI가 신고서를 작성합니다. 내용을 확인한 뒤 직접 제출하세요.</small></p>
+
+<div class="card">
+  <input type="file" id="file" accept="image/*" capture="environment">
+  <p><button id="analyzeBtn">AI 분석</button> <small id="status"></small></p>
+</div>
+
+<div id="draft" class="card" hidden>
+  <img id="preview" alt="업로드한 사진">
+  <p><span class="tag" id="type"></span><span class="tag" id="sev"></span><span class="tag" id="conf"></span></p>
+  <div id="warn" class="warn" hidden>AI 신뢰도가 낮거나 신고 대상이 아닐 수 있습니다. 내용을 꼭 확인하세요.</div>
+  <p id="privacy" class="warn" hidden></p>
+  <p><small>접수 기관: <b id="agency"></b></small></p>
+  <label>제목<input type="text" id="title"></label>
+  <label>내용<textarea id="desc"></textarea></label>
+  <label>위치<input type="text" id="addr"></label>
+  <button id="submitBtn">신고 제출</button>
+  <div id="result" class="ok" hidden></div>
+</div>
+
+<h2>내 신고 내역</h2>
+<div id="list"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+let rid = null, coords = null;
+
+navigator.geolocation?.getCurrentPosition(p => coords = [p.coords.latitude, p.coords.longitude]);
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+$('analyzeBtn').onclick = async () => {
+  const f = $('file').files[0];
+  if (!f) return alert('사진을 선택하세요');
+  const fd = new FormData();
+  fd.append('image', f);
+  if (coords) { fd.append('lat', coords[0]); fd.append('lng', coords[1]); }
+  $('analyzeBtn').disabled = true; $('status').textContent = '분석 중...';
+  try {
+    const r = await fetch('/api/analyze', {method:'POST', body: fd});
+    if (!r.ok) throw new Error((await r.json()).detail);
+    const d = await r.json();
+    rid = d.id;
+    $('preview').src = URL.createObjectURL(f);
+    $('type').textContent = d.type_label;
+    $('sev').textContent = '위험도 ' + (d.analysis.severity || '-');
+    $('conf').textContent = '신뢰도 ' + Math.round((d.analysis.confidence || 0) * 100) + '%';
+    $('warn').hidden = !d.needs_review;
+    const pf = d.analysis.privacy_flags || [];
+    $('privacy').hidden = !pf.length;
+    $('privacy').textContent = '⚠ 개인정보 포함 가능: ' + pf.join(', ');
+    $('agency').textContent = d.agency;
+    $('title').value = d.title; $('desc').value = d.description; $('addr').value = d.address;
+    $('result').hidden = true; $('submitBtn').disabled = false;
+    $('draft').hidden = false; $('status').textContent = '';
+  } catch (e) { $('status').textContent = '오류: ' + e.message; }
+  $('analyzeBtn').disabled = false;
+};
+
+$('submitBtn').onclick = async () => {
+  $('submitBtn').disabled = true;
+  const r = await fetch(`/api/reports/${rid}/submit`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({title:$('title').value, description:$('desc').value, address:$('addr').value})
+  });
+  const d = await r.json();
+  if (!r.ok) { alert(d.detail); $('submitBtn').disabled = false; return; }
+  $('result').hidden = false;
+  $('result').textContent = '제출 완료! 접수번호: ' + d.receipt_no + ' (데모: 모의 제출)';
+  loadList();
+};
+
+async function loadList() {
+  const rows = await (await fetch('/api/reports')).json();
+  $('list').innerHTML = rows.map(r => `<div class="card"><b>${esc(r.title)}</b><br>
+    <small>${esc(r.agency)} · ${esc(r.status)} ${r.receipt_no ? '· ' + esc(r.receipt_no) : ''}<br>${esc(r.address)}</small></div>`).join('') || '<small>없음</small>';
+}
+loadList();
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+# 비밀 정보 (절대 올리지 말 것)
+.env
+.env.*
+!.env.example
+.vercel-token
+.vercel/
+
+# 가상환경 / 캐시
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+
+# 런타임 데이터
+uploads/
+*.db

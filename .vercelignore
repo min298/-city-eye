@@ -1,0 +1,13 @@
+.venv
+.env
+.env.local
+uploads
+*.db
+/웹페이지
+/workshop.ipynb
+/index.html
+/logo.png
+/*.png
+__pycache__
+.ipynb_checkpoints
+.vercel-token
