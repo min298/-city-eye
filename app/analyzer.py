@@ -48,6 +48,15 @@ def _client():
     return OpenAI(api_key=api_key)
 
 
+def is_live() -> bool:
+    """실제 OpenAI 호출 가능 여부(키 설정됨). False면 데모 응답."""
+    return bool(os.getenv("OPENAI_API_KEY", "").strip())
+
+
+def model_name() -> str:
+    return _model()
+
+
 def _extract_json(text: str) -> dict:
     m = re.search(r"\{.*\}", text, re.S)
     if not m:

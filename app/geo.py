@@ -37,8 +37,17 @@ def reverse_geocode(lat: float, lng: float) -> dict:
         )
         data = r.json()
         a = data.get("address", {})
+        # 한국식 순서(시/도 → 구 → 동 → 도로명 → 번호)로 조합. 실패하면 원본 표기 사용
+        parts = [
+            a.get("state") or a.get("province") or a.get("city"),
+            a.get("borough") or a.get("city_district") or a.get("county"),
+            a.get("suburb") or a.get("quarter") or a.get("neighbourhood"),
+            a.get("road"),
+            a.get("house_number"),
+        ]
+        korean = " ".join(p for p in parts if p)
         return {
-            "address": data.get("display_name", ""),
+            "address": korean or data.get("display_name", ""),
             "city": a.get("city") or a.get("province") or "",
             "district": a.get("borough") or a.get("city_district") or a.get("county") or "",
         }

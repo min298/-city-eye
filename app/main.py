@@ -1,5 +1,6 @@
 import json
 import os
+import time
 import uuid
 from pathlib import Path
 
@@ -13,7 +14,7 @@ _ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(_ROOT / ".env.local")  # OPENAI_API_KEY (서버 전용)
 load_dotenv(_ROOT / ".env")
 
-from . import agencies, db, geo  # noqa: E402
+from . import agencies, analyzer, db, geo  # noqa: E402
 from .analyzer import REPORT_TYPES, analyze_image, write_complaint  # noqa: E402
 from .submitter import get_submitter  # noqa: E402
 
@@ -80,12 +81,50 @@ async def analyze_simple(file: UploadFile = File(...)):
     data = await file.read()
     if len(data) > MAX_BYTES:
         raise HTTPException(413, "이미지는 4MB 이하여야 합니다")
+    started = time.perf_counter()
     try:
         analysis = analyze_image(data, file.content_type)
     except Exception as e:
         raise HTTPException(502, f"이미지 분석 실패: {e}")
     analysis["type_label"] = REPORT_TYPES[analysis["type"]]
+    # 화면에서 "실제 AI 호출 결과인지" 확인할 수 있도록 메타 정보 제공
+    analysis["meta"] = {
+        "live": analyzer.is_live(),
+        "model": analyzer.model_name() if analyzer.is_live() else "demo",
+        "elapsed_ms": round((time.perf_counter() - started) * 1000),
+    }
     return analysis
+
+
+@app.post("/locate")
+async def locate(
+    file: UploadFile | None = File(None),
+    lat: float | None = Form(None),
+    lng: float | None = Form(None),
+):
+    """사진 EXIF GPS → (없으면) 브라우저 위치 → 주소 변환."""
+    source, coords = None, None
+    if file is not None:
+        if file.content_type not in ALLOWED:
+            raise HTTPException(400, "jpeg/png/webp 이미지만 가능합니다")
+        data = await file.read()
+        if len(data) > MAX_BYTES:
+            raise HTTPException(413, "이미지는 4MB 이하여야 합니다")
+        coords = geo.extract_exif_gps(data)
+        if coords:
+            source = "exif"
+    if coords is None and lat is not None and lng is not None:
+        if not (-90 <= lat <= 90 and -180 <= lng <= 180):
+            raise HTTPException(400, "좌표 범위가 올바르지 않습니다")
+        coords, source = (lat, lng), "browser"
+    if coords is None:
+        raise HTTPException(404, "사진에 위치 정보(EXIF)가 없고 기기 위치도 받지 못했습니다")
+
+    place = geo.reverse_geocode(*coords)
+    if not place["address"]:
+        raise HTTPException(502, "좌표를 주소로 변환하지 못했습니다. 직접 입력해 주세요")
+    return {"address": place["address"], "source": source,
+            "lat": coords[0], "lng": coords[1]}
 
 
 @app.post("/complaint")
@@ -206,11 +245,6 @@ app.mount("/static", StaticFiles(directory=BASE / "static"), name="static")
 @app.get("/demo")
 def demo():
     return FileResponse(BASE / "static" / "demo.html")
-
-
-@app.get("/로고이미지.png")
-def logo():
-    return FileResponse(BASE / "static" / "로고이미지.png")
 
 
 @app.get("/")
