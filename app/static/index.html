@@ -951,11 +951,12 @@
           if (!r.ok) throw new Error(d.detail || "제출 실패");
 
           $("submitResult").textContent =
-              "✅ 접수 완료\n접수번호: " + d.receipt_no +
-              (d.channel ? "\n접수처: " + d.channel : "") +
+              (d.simulated ? "✅ 접수 완료 (모의)" : "✅ 접수 완료 · 메일 발송됨") +
+              "\n접수번호: " + d.receipt_no +
+              (d.channel ? "\n추천 접수처: " + d.channel : "") +
               (d.simulated
                   ? "\n\n※ 데모 모드: 실제 공공기관으로 전송되지 않은 모의 접수입니다."
-                  : "");
+                  : "\n담당 기관 수신 메일: " + d.to + "\n사진과 민원문이 첨부되어 전송되었습니다.");
           $("submitResult").style.display = "block";
           $("submitBtn").textContent = "✓ 제출 완료";
       } catch (e) {

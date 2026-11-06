@@ -179,7 +179,7 @@ async def submit_one_click(
     path.write_bytes(data)
 
     report = {"title": parsed.get("title", ""), "description": complaint,
-              "address": location, "analysis": parsed}
+              "address": location, "analysis": parsed, "image_path": str(path)}
     submitter = get_submitter()
     try:
         receipt = submitter.submit(report)
@@ -194,7 +194,8 @@ async def submit_one_click(
         status="submitted", receipt_no=receipt,
     )
     return {"id": rid, "receipt_no": receipt, "channel": channel_name,
-            "simulated": not getattr(submitter, "is_real", False)}
+            "simulated": not submitter.is_real, "delivery": submitter.label,
+            "to": submitter.to_masked}
 
 
 @app.post("/route")
