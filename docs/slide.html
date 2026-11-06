@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>City Eye 발표자료</title>
+<style>
+  @page { size: 1920px 1080px; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; }
+  body {
+    font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+    background: #f5f7fb; color: #172033;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .slide { width: 1920px; height: 1080px; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* 상단 */
+  .hero {
+    flex: 0 0 232px; background: #14243d; color: #fff; padding: 0 90px;
+    display: flex; align-items: center; gap: 44px;
+  }
+  .logo-box { background: #fff; border-radius: 22px; padding: 12px 20px; }
+  .logo-box img { height: 132px; display: block; }
+  .label { color: #93b7ff; font-size: 22px; font-weight: bold; letter-spacing: 4px; }
+  .hero h1 { font-size: 72px; letter-spacing: -2px; margin: 4px 0 6px; line-height: 1.1; }
+  .hero h1 em { color: #6ea0ff; font-style: normal; }
+  .hero p { font-size: 31px; color: #cbd5e1; }
+
+  .body { flex: 1 1 auto; min-height: 0; padding: 28px 90px 0; display: flex; flex-direction: column; gap: 24px; }
+
+  /* 문제 / 해결 */
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; flex: 0 0 auto; }
+  .card { background: #fff; border: 2px solid #e5eaf1; border-radius: 20px; padding: 22px 32px; }
+  .card h2 { font-size: 30px; margin-bottom: 8px; }
+  .card h2 span { color: #2563eb; margin-right: 10px; }
+  .card li { font-size: 24px; line-height: 1.5; color: #334155; }
+  .card ul { padding-left: 28px; }
+  .card.problem { border-left: 10px solid #f59e0b; }
+  .card.solution { border-left: 10px solid #2563eb; }
+
+  /* 흐름 */
+  .flow { display: flex; align-items: stretch; gap: 12px; flex: 0 0 auto; }
+  .step {
+    flex: 1; background: #eaf1ff; border: 2px solid #93b7ff; border-radius: 18px;
+    padding: 14px 12px; text-align: center;
+  }
+  .step .ico { font-size: 42px; line-height: 1.1; }
+  .step b { display: block; font-size: 27px; color: #1d4ed8; margin: 4px 0 4px; }
+  .step small { font-size: 20px; color: #475569; line-height: 1.4; display: block; }
+  .arrow { align-self: center; font-size: 36px; color: #2563eb; font-weight: bold; }
+
+  /* 하단 3칸 */
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 28px; flex: 0 0 auto; }
+  .row3 .card { padding: 20px 28px; }
+  .row3 .card h2 { font-size: 28px; }
+  .row3 .card li { font-size: 23px; line-height: 1.5; }
+  .tag { display: inline-block; background: #fef3c7; color: #b45309; border-radius: 10px;
+         padding: 0 10px; font-size: 20px; font-weight: bold; }
+
+  /* 푸터 */
+  .footer {
+    flex: 0 0 84px; background: #14243d; color: #cbd5e1;
+    padding: 0 90px; display: flex; align-items: center; justify-content: space-between; font-size: 25px;
+  }
+  .footer b { color: #fff; margin-right: 8px; }
+</style>
+</head>
+<body>
+<div class="slide">
+
+  <div class="hero">
+    <div class="logo-box"><img src="../logo.png" alt="CITY EYE"></div>
+    <div>
+      <div class="label">SMART CITY AI SERVICE · 생활 불편 자동 탐지</div>
+      <h1>CITY <em>EYE</em> 👁</h1>
+      <p>도시의 작은 문제도, 사진 한 장이면 AI가 먼저 발견하고 신고까지 이어줍니다</p>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <div class="row2">
+      <div class="card problem">
+        <h2><span>문제</span>발견해도 신고는 어렵다</h2>
+        <ul>
+          <li>불법 주정차·포트홀·쓰레기 투기를 봐도 <b>어디에, 어떻게</b> 신고할지 모름</li>
+          <li>신고서를 직접 쓰는 번거로움 때문에 대부분 그냥 지나침</li>
+        </ul>
+      </div>
+      <div class="card solution">
+        <h2><span>해결</span>사진 1장 → 민원 작성 → 접수</h2>
+        <ul>
+          <li>AI가 사진을 분석해 <b>문제 유형·위험도</b>를 자동 판단</li>
+          <li>공공기관에 맞는 <b>민원문 자동 작성</b>, 알맞은 <b>접수처 추천</b></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="flow">
+      <div class="step"><div class="ico">📸</div><b>사진·위치 입력</b><small>현장 사진 업로드<br>GPS 위치 자동 입력</small></div>
+      <div class="arrow">▶</div>
+      <div class="step"><div class="ico">🤖</div><b>AI 이미지 분석</b><small>유형·위험도·신뢰도<br>개인정보 포함 경고</small></div>
+      <div class="arrow">▶</div>
+      <div class="step"><div class="ico">📝</div><b>민원 자동 작성</b><small>정중한 민원문 생성<br>사실만 기반 작성</small></div>
+      <div class="arrow">▶</div>
+      <div class="step"><div class="ico">🏛️</div><b>접수처 AI 추천</b><small>안전신문고·국민신문고<br>서울시 응답소 중 선택</small></div>
+      <div class="arrow">▶</div>
+      <div class="step"><div class="ico">🚀</div><b>제출 버튼 한 번</b><small>확인 후 접수<br>접수번호 발급</small></div>
+    </div>
+
+    <div class="row3">
+      <div class="card">
+        <h2><span>●</span>핵심 기술</h2>
+        <ul>
+          <li>OpenAI 비전 모델로 사진 분석·민원 작성</li>
+          <li>FastAPI 서버에서만 AI 호출 (키 비공개)</li>
+          <li><b>공식 사이트 목록</b> 안에서만 추천 (환각 방지)</li>
+          <li>교내 GPU(틸론) <b>SDXL-Turbo</b>로 로고 생성</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2><span>●</span>안전·신뢰 설계</h2>
+        <ul>
+          <li>신고 대상 아님·저신뢰 → <b>경고·제출 차단</b></li>
+          <li>제출 전 최종 확인 (허위 신고 책임 안내)</li>
+          <li>얼굴·번호판 등 개인정보 포함 여부 알림</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2><span>●</span>현재 상태 · 향후 계획</h2>
+        <ul>
+          <li><span class="tag">DEMO</span> 접수는 모의 처리 (실제 전송 아님)</li>
+          <li>공식 API·제휴 연동 시 실제 접수로 확장</li>
+          <li>영구 DB·처리 상태 추적, 번호판 자동 블러</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <div><b>GitHub</b> github.com/min298/-city-eye</div>
+    <div><b>Demo</b> city-eye-wine.vercel.app</div>
+    <div><b>Stack</b> FastAPI · OpenAI · Vercel</div>
+  </div>
+
+</div>
+</body>
+</html>
